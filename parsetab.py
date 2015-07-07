@@ -5,9 +5,9 @@ _tabversion = '3.5'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'CCF99DA21E2B59E4544DC02FE7AD2CA3'
+_lr_signature = '8EF373ACBAE3EF79FD4F837CD7B1616E'
     
-_lr_action_items = {'VERSION':([0,],[2,]),'$end':([1,3,8,],[0,-1,-2,]),'NUMBER':([2,5,7,],[4,6,8,]),'DOT':([4,6,],[5,7,]),}
+_lr_action_items = {'VERSION':([0,],[2,]),'$end':([1,7,],[0,-1,]),'EQUALS':([2,],[3,]),'DOUBLEQUOTE':([3,5,11,],[4,7,-2,]),'NUMBER':([4,8,10,],[6,9,11,]),'PERIOD':([6,9,],[8,10,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -16,7 +16,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'version':([0,],[1,]),'versionstring':([2,],[3,]),}
+_lr_goto_items = {'version':([0,],[1,]),'versionstring':([4,],[5,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -26,6 +26,7 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> version","S'",1,None,None,None),
-  ('version -> VERSION versionstring','version',2,'p_version','plytest.py',120),
-  ('versionstring -> NUMBER DOT NUMBER DOT NUMBER','versionstring',5,'p_versionstring','plytest.py',126),
+  ('version -> VERSION EQUALS DOUBLEQUOTE versionstring DOUBLEQUOTE','version',5,'p_version','plytest.py',90),
+  ('versionstring -> NUMBER PERIOD NUMBER PERIOD NUMBER','versionstring',5,'p_versionstring','plytest.py',96),
+  ('makro -> MAKRO','makro',1,'p_makro','plytest.py',102),
 ]

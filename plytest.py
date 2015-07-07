@@ -12,9 +12,12 @@ class SpecFileLexer(object):
     tokens = (
         "VERSION",
         "NUMBER",
-        "DOT",
+        "PERIOD",
         "EQUALS",
-        "DOUBLEQUOTE"
+        "DOUBLEQUOTE",
+        "MAKRO",
+        "LBRACE",
+        "RBRACE"
     )
 
     t_VERSION = r'VERSION'
@@ -23,7 +26,9 @@ class SpecFileLexer(object):
 
     t_DOUBLEQUOTE = r'"'
 
-    t_DOT = r'.'
+    t_PERIOD = r'\.'
+
+    t_MAKRO = r'%(\w*?)\n+'
 
     def t_NUMBER(self, t):
         r'\d+'
@@ -56,41 +61,6 @@ class SpecFileLexer(object):
 class SpecFileParser(object):
 
     def __init__(self,**kwargs):
-        """ Create a new parser.
-            Some arguments for controlling the debug/optimization
-            level of the parser are provided. The defaults are
-            tuned for release/performance mode.
-            The simple rules for using them are:
-            *) When tweaking the lexer/parser, set these to False
-            *) When releasing a stable parser, set to True
-            lex_optimize:
-                Set to False when you're modifying the lexer.
-                Otherwise, changes in the lexer won't be used, if
-                some lextab.py file exists.
-                When releasing with a stable lexer, set to True
-                to save the re-generation of the lexer table on
-                each run.
-            lextab:
-                Points to the lex table that's used for optimized
-                mode. Only if you're modifying the lexer and want
-                some tests to avoid re-generating the table, make
-                this point to a local lex table file (that's been
-                earlier generated with lex_optimize=True)
-            yacc_optimize:
-                Set to False when you're modifying the parser.
-                Otherwise, changes in the parser won't be used, if
-                some parsetab.py file exists.
-                When releasing with a stable parser, set to True
-                to save the re-generation of the parser table on
-                each run.
-            yacctab:
-                Points to the yacc table that's used for optimized
-                mode. Only if you're modifying the parser, make
-                this point to a local yacc table file
-            yacc_debug:
-                Generate a parser.out file that explains how yacc
-                built the parsing table from the ammar.
-        """
         self.logger = logging.getLogger('parser')
         self.lex = SpecFileLexer()
 
@@ -117,18 +87,24 @@ class SpecFileParser(object):
 
     def p_version(self, p):
         """
-        version : VERSION versionstring
+        version : VERSION EQUALS DOUBLEQUOTE versionstring DOUBLEQUOTE
         """
-        p[0] = Test(p[2])
+        p[0] = Test(p[4])
 
     def p_versionstring(self, p):
         """
-        versionstring : NUMBER DOT NUMBER DOT NUMBER
+        versionstring : NUMBER PERIOD NUMBER PERIOD NUMBER
         """
         p[0] = "{0}.{1}.{2}".format(p[1], p[3], p[5])
 
+    def p_makro(self, p):
+        """
+        makro : MAKRO
+        """
+        p[0] = p[3]
+
     def p_error(self, p):
-        print "Syntax error at {0}".format(p.value)
+        print "Syntax error at {0}".format(p)
 
 class Test(object):
     def __init__(self, version):
@@ -139,7 +115,9 @@ class Test(object):
 if __name__ == "__main__":
     # Test it out
     data = '''
-    VERSION 1.1.1
+    VERSION="1.1.1"
+    %install
+    echo "Hallo Welt!"
     '''
     parser = SpecFileParser(lex_optimize=False, yacc_debug=True, yacc_optimize=False)
     print parser.parse(data)

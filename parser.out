@@ -2,26 +2,31 @@ Created by PLY version 3.6 (http://www.dabeaz.com/ply)
 
 Unused terminals:
 
-    EQUALS
-    DOUBLEQUOTE
+    LBRACE
+    RBRACE
 
 Grammar
 
 Rule 0     S' -> version
-Rule 1     version -> VERSION versionstring
-Rule 2     versionstring -> NUMBER DOT NUMBER DOT NUMBER
+Rule 1     version -> VERSION EQUALS DOUBLEQUOTE versionstring DOUBLEQUOTE
+Rule 2     versionstring -> NUMBER PERIOD NUMBER PERIOD NUMBER
+Rule 3     makro -> MAKRO
 
 Terminals, with rules where they appear
 
-DOT                  : 2 2
-DOUBLEQUOTE          : 
-EQUALS               : 
+DOUBLEQUOTE          : 1 1
+EQUALS               : 1
+LBRACE               : 
+MAKRO                : 3
 NUMBER               : 2 2 2
+PERIOD               : 2 2
+RBRACE               : 
 VERSION              : 1
 error                : 
 
 Nonterminals, with rules where they appear
 
+makro                : 
 version              : 0
 versionstring        : 1
 
@@ -30,7 +35,7 @@ Parsing method: LALR
 state 0
 
     (0) S' -> . version
-    (1) version -> . VERSION versionstring
+    (1) version -> . VERSION EQUALS DOUBLEQUOTE versionstring DOUBLEQUOTE
 
     VERSION         shift and go to state 2
 
@@ -44,51 +49,72 @@ state 1
 
 state 2
 
-    (1) version -> VERSION . versionstring
-    (2) versionstring -> . NUMBER DOT NUMBER DOT NUMBER
+    (1) version -> VERSION . EQUALS DOUBLEQUOTE versionstring DOUBLEQUOTE
 
-    NUMBER          shift and go to state 4
+    EQUALS          shift and go to state 3
 
-    versionstring                  shift and go to state 3
 
 state 3
 
-    (1) version -> VERSION versionstring .
+    (1) version -> VERSION EQUALS . DOUBLEQUOTE versionstring DOUBLEQUOTE
 
-    $end            reduce using rule 1 (version -> VERSION versionstring .)
+    DOUBLEQUOTE     shift and go to state 4
 
 
 state 4
 
-    (2) versionstring -> NUMBER . DOT NUMBER DOT NUMBER
+    (1) version -> VERSION EQUALS DOUBLEQUOTE . versionstring DOUBLEQUOTE
+    (2) versionstring -> . NUMBER PERIOD NUMBER PERIOD NUMBER
 
-    DOT             shift and go to state 5
+    NUMBER          shift and go to state 6
 
+    versionstring                  shift and go to state 5
 
 state 5
 
-    (2) versionstring -> NUMBER DOT . NUMBER DOT NUMBER
+    (1) version -> VERSION EQUALS DOUBLEQUOTE versionstring . DOUBLEQUOTE
 
-    NUMBER          shift and go to state 6
+    DOUBLEQUOTE     shift and go to state 7
 
 
 state 6
 
-    (2) versionstring -> NUMBER DOT NUMBER . DOT NUMBER
+    (2) versionstring -> NUMBER . PERIOD NUMBER PERIOD NUMBER
 
-    DOT             shift and go to state 7
+    PERIOD          shift and go to state 8
 
 
 state 7
 
-    (2) versionstring -> NUMBER DOT NUMBER DOT . NUMBER
+    (1) version -> VERSION EQUALS DOUBLEQUOTE versionstring DOUBLEQUOTE .
 
-    NUMBER          shift and go to state 8
+    $end            reduce using rule 1 (version -> VERSION EQUALS DOUBLEQUOTE versionstring DOUBLEQUOTE .)
 
 
 state 8
 
-    (2) versionstring -> NUMBER DOT NUMBER DOT NUMBER .
+    (2) versionstring -> NUMBER PERIOD . NUMBER PERIOD NUMBER
 
-    $end            reduce using rule 2 (versionstring -> NUMBER DOT NUMBER DOT NUMBER .)
+    NUMBER          shift and go to state 9
+
+
+state 9
+
+    (2) versionstring -> NUMBER PERIOD NUMBER . PERIOD NUMBER
+
+    PERIOD          shift and go to state 10
+
+
+state 10
+
+    (2) versionstring -> NUMBER PERIOD NUMBER PERIOD . NUMBER
+
+    NUMBER          shift and go to state 11
+
+
+state 11
+
+    (2) versionstring -> NUMBER PERIOD NUMBER PERIOD NUMBER .
+
+    DOUBLEQUOTE     reduce using rule 2 (versionstring -> NUMBER PERIOD NUMBER PERIOD NUMBER .)
 
