@@ -3,7 +3,7 @@
 from argcommand import Command
 from argcommand import Argument
 from yapsy.PluginManager import PluginManager
-from build.cmd import BuildCommand
+from portbuild.cmd import BuildCommand
 from download.cmd import DownloadCommand
 from install.cmd import InstallCommand
 
