@@ -1,5 +1,6 @@
 from argcommand import Command
-
+from downloadmanager import DownLoadManager
+from port import Port
 
 class DownloadCommand(Command):
     """
@@ -9,4 +10,7 @@ class DownloadCommand(Command):
     command_name = 'download'
 
     def run(self):
-        print("downloading")
+        port = Port()
+        mgr = DownLoadManager()
+        mgr.download(port)
+        mgr.extract(port)
