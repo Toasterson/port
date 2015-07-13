@@ -24,9 +24,9 @@ class DownLoadManager(object):
         pass
 
     def download(self, port):
-        # create ports_cache if needed
-        if not os.path.exists(port.source_dir()):
-            os.makedirs(port.source_dir())
+        # create download cache if needed
+        if not os.path.exists(port.download_dir()):
+            os.makedirs(port.download_dir())
 
         # Download URL.
         url_handle = None
@@ -147,4 +147,5 @@ class DownLoadManager(object):
 
     def extract(self, port):
         shutil.rmtree(port.source_dir(), ignore_errors=True)
+        os.makedirs(port.source_dir())
         patoolib.extract_archive(port.download_filename(), outdir=port.source_dir())

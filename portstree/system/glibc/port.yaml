@@ -1,0 +1,5 @@
+---
+base_url: "https://ftp.gnu.org/gnu/libc"
+name: glibc
+suffix: tar.xz
+version: "2.21"
