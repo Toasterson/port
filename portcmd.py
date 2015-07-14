@@ -42,8 +42,7 @@ class BuildCommand(Command):
         # mgr = DownLoadManager()
         # mgr.download(port)
         # mgr.extract(port)
-        builder = BuildManager()
-        builder.build(port)
+        BuildManager.build(port)
 
 
 class InstallCommand(Command):
