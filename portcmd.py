@@ -2,12 +2,10 @@
 
 import sys
 import argparse
-import os
+
+from build import BuildManager
 from argcommand import Command
-from argcommand import Argument
-from yapsy.PluginManager import PluginManager
-from download.downloadmanager import DownLoadManager
-from port import Port
+from download import DownLoadManager
 from port import PortFactory
 
 
@@ -21,9 +19,9 @@ class DownloadCommand(Command):
     def run(self):
         parser = argparse.ArgumentParser(
             description='Download a Port')
-        parser.add_argument('port', nargs='?', help='The Port to download')
+        parser.add_argument('portname', nargs='?', help='The Port to download')
         args = parser.parse_args(sys.argv[2:])
-        port = PortFactory.loadport(args.port)
+        port = PortFactory.loadport(args)
         mgr = DownLoadManager()
         mgr.download(port)
 
@@ -38,12 +36,14 @@ class BuildCommand(Command):
     def run(self):
         parser = argparse.ArgumentParser(
             description='Build a Port')
-        parser.add_argument('port', nargs='?', help='The Port to build', default=os.curdir)
+        parser.add_argument('portname', nargs='?', help='The Port to build', default='system/glibc')
         args = parser.parse_args(sys.argv[2:])
-        port = PortFactory.loadport(args.port)
-        mgr = DownLoadManager()
-        mgr.download(port)
-        mgr.extract(port)
+        port = PortFactory.loadport(args)
+        # mgr = DownLoadManager()
+        # mgr.download(port)
+        # mgr.extract(port)
+        builder = BuildManager()
+        builder.build(port)
 
 
 class InstallCommand(Command):
