@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-import sys
-import argparse
+import os
+import logging
 
 from build import BuildManager
 from argcommand import Command
+from argcommand import Argument
 from download import DownLoadManager
 from port import PortFactory
+import locale
 
 
 class DownloadCommand(Command):
@@ -15,13 +17,10 @@ class DownloadCommand(Command):
     """
 
     command_name = 'download'
+    portname = Argument('portname', nargs='?', help='The Port to download', default=os.path.realpath(os.curdir))
 
     def run(self):
-        parser = argparse.ArgumentParser(
-            description='Download a Port')
-        parser.add_argument('portname', nargs='?', help='The Port to download')
-        args = parser.parse_args(sys.argv[2:])
-        port = PortFactory.loadport(args)
+        port = PortFactory.loadport(self)
         mgr = DownLoadManager()
         mgr.download(port)
 
@@ -32,13 +31,10 @@ class BuildCommand(Command):
     """
 
     command_name = 'build'
+    portname = Argument('portname', nargs='?', help='The Port to download', default=os.path.realpath(os.curdir))
 
     def run(self):
-        parser = argparse.ArgumentParser(
-            description='Build a Port')
-        parser.add_argument('portname', nargs='?', help='The Port to build', default='system/glibc')
-        args = parser.parse_args(sys.argv[2:])
-        port = PortFactory.loadport(args)
+        port = PortFactory.loadport(self)
         # mgr = DownLoadManager()
         # mgr.download(port)
         # mgr.extract(port)
@@ -51,6 +47,7 @@ class InstallCommand(Command):
     """
 
     command_name = 'install'
+    portname = Argument('portname', nargs='?', help='The Port to download', default=os.path.realpath(os.curdir))
 
     def run(self):
         print("installing")
@@ -63,9 +60,15 @@ class PortCommand(Command):
 
     subcommands = [BuildCommand, DownloadCommand, InstallCommand]
 
+    loglevel = Argument('--log', help='Set Logging level', dest='loglevel')
+
     def run(self):
-        pass
+        numeric_level = getattr(logging, self.loglevel.upper(), None)
+        if not isinstance(numeric_level, int):
+            raise ValueError('Invalid log level: %s' % self.loglevel)
+        logging.basicConfig(level=numeric_level)
 
 
 if "__main__" == __name__:
-    PortCommand.execute(['build'])
+    locale.setlocale(locale.LC_ALL, '')
+    PortCommand.execute(['build', 'system/glibc'])

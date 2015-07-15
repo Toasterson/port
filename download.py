@@ -3,7 +3,6 @@ import urllib2
 import zlib
 import patoolib
 import shutil
-import logging
 
 # Download URLs in chunks of 256 kB.
 CHUNK_SIZE = 256 * 1024
@@ -36,8 +35,8 @@ class DownLoadManager(object):
                 if http_err.code == 304:
                     # resource not modified
                     # self.env["download_changed"] = False
-                    logging.info("Item at URL is unchanged.")
-                    logging.info("Using existing %s" % port.download_filename())
+                    print("Item at URL is unchanged.")
+                    print("Using existing %s" % port.download_filename())
                     return
                 else:
                     raise
@@ -50,12 +49,12 @@ class DownLoadManager(object):
             if url_handle.info().get("Content-Length"):
                 if int(size_header) == existing_file_length:
                     # self.env["download_changed"] = False
-                    logging.info("File size returned by webserver matches that "
+                    print("File size returned by webserver matches that "
                                  "of the cached file: %s bytes" % size_header)
-                    logging.warning("Matching a download by filesize is a "
+                    print("WARNING:Matching a download by filesize is a "
                                     "fallback mechanism that does not guarantee "
                                     "that a build is unchanged.")
-                    logging.info("Using existing %s" % port.download_filename())
+                    print("Using existing %s" % port.download_filename())
                     return
 
             # Handle edge case where server responds with a
@@ -75,7 +74,7 @@ class DownLoadManager(object):
                 # mentioned above.
                 pass
             elif content_encoding and content_encoding != 'identity':
-                logging.warning("Content-Encoding of %s may not be "
+                print("WARNING:Content-Encoding of %s may not be "
                                 "supported" % content_encoding)
 
             gzip_handle = zlib.decompressobj(16 + zlib.MAX_WBITS)
@@ -91,7 +90,7 @@ class DownLoadManager(object):
                     if content_encoding == 'gzip':
                         data = gzip_handle.decompress(data)
                     file_handle.write(data)
-                    logging.info("Downloaded %s" % port.download_filename())
+                    print("Downloaded %s" % port.download_filename())
         except BaseException as err:
             raise Exception("Couldn't download %s: %s" % (port.download_url(), err))
 

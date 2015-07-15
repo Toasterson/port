@@ -13,6 +13,7 @@ except ImportError:
 # TODO move default values from __init__ to config
 class Port(object):
     def __init__(self, portname):
+        # TODO make function to transform fullpath to portname
         self.portname = portname
         self.version = ''
         self.name = ''
@@ -54,10 +55,11 @@ class PortFactory(object):
         for dir, subdirs, files in walk_up(os.path.join(root, port.portname), root):
             for f in files:
                 if f == 'port.yaml' or f == '{0}.yaml'.format(sys.platform):
+                    logging.info('Loading port metadata from {0}'.format(f))
                     with io.open(os.path.join(dir, f), 'r') as port_desc:
                         port.__dict__.update(load(port_desc, Loader=Loader))
         if port.name == '':
-            logging.error('Port {PORTNAME} could not be loaded'.format(PORTNAME=port.portname))
+            print('ERROR:Port {PORTNAME} could not be loaded'.format(PORTNAME=port.portname))
             sys.exit(1)
         # TODO load dependency metadata here
         return port

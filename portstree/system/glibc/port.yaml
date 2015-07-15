@@ -3,24 +3,25 @@ base_url: "https://ftp.gnu.org/gnu/libc"
 name: glibc
 suffix: tar.xz
 version: "2.21"
+seperate_build_dir: True
 config:
-- nssstatic:
-    optionenabled: '--enable-static-nss'
+  nssstatic:
+    enabled: '--enable-static-nss'
     description: 'build static NSS modules [default=no]'
-    optiondisabled: ''
+    disabled: ''
     default: false
-- werror:
-    optionenabled: '--disable-werror'
+  werror:
+    enabled: '--disable-werror'
     description: 'do not build with -Werror'
-    optiondisabled: ''
+    disabled: ''
     default: false
-- enablensscrypt:
-    optionenabled: '--enable-nss-crypt'
+  enablensscrypt:
+    enabled: '--enable-nss-crypt'
     description: 'enable libcrypt to use nss'
-    optiondisabled: ''
+    disabled: ''
     default: true
-- disablenscd:
-    optionenabled: '--disable-build-nscd --disable-nscd'
+  disablenscd:
+    enabled: '--disable-build-nscd --disable-nscd'
     description: 'disable building and installing the nscd daemon'
-    optiondisabled: ''
+    disabled: ''
     default: true

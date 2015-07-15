@@ -1,7 +1,8 @@
 from yapsy.PluginManager import PluginManager
 from yapsy.IPlugin import IPlugin
 from abc import abstractmethod
-import logging
+import locale
+from dialog import Dialog
 
 
 class BuildManager(object):
@@ -29,6 +30,7 @@ class IBuildPlugin(IPlugin):
     def __init__(self):
         super(IBuildPlugin, self).__init__()
         self.does_apply = False
+        self.port = None
 
     @abstractmethod
     def check(self):
@@ -42,7 +44,7 @@ class IBuildPlugin(IPlugin):
         self.port = port
         self.check()
         if self.does_apply:
-            logging.info('Building Port {PORTNAME}'.format(PORTNAME=port.portname))
+            print('Building Port {PORTNAME}'.format(PORTNAME=port.portname))
             self.run()
 
 
@@ -60,12 +62,23 @@ class IConfigurePlugin(IPlugin):
         pass
 
     def ask(self):
-        pass
+        dialog = Dialog(dialog='dialog')
+        dialog.set_background_title('Conguration for {PORTNAME}'.format(PORTNAME=self.port.portname))
+        portchoices = []
+        for option, optvalues in self.port.config.iteritems():
+            self.port.config[option]['user_choice'] = False
+            portchoices.append((option, optvalues['description'], optvalues['default']))
+        code, tags = dialog.checklist('Choose your Configuration for {PORTNAME}'.format(PORTNAME=self.port.portname),
+                                      choices=portchoices, title="Port configuration")
+        if code == dialog.OK:
+            for tag in tags:
+                self.port.config[tag]['user_choice'] = True
+        print('\n')
 
     def main(self, port):
         self.port = port
         self.check()
         if self.does_apply:
             self.ask()
-            logging.info('Running configuration scripts for {PORTNAME}'.format(PORTNAME=port.portname))
+            print('Running configure script for {PORTNAME}'.format(PORTNAME=port.portname))
             self.configure()
