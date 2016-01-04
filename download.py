@@ -1,5 +1,6 @@
 import os
-import urllib2
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 import zlib
 import patoolib
 import shutil
@@ -19,7 +20,7 @@ class DownLoadManager(object):
         # Download URL.
         url_handle = None
         try:
-            request = urllib2.Request(url=port.download_url())
+            request = Request(url=port.download_url())
 
             # if file already exists, add some headers to the request
             # so we don't retrieve the content if it hasn't changed
@@ -30,8 +31,8 @@ class DownLoadManager(object):
 
             # Open URL.
             try:
-                url_handle = urllib2.urlopen(request)
-            except urllib2.HTTPError, http_err:
+                url_handle = urlopen(request)
+            except HTTPError as http_err:
                 if http_err.code == 304:
                     # resource not modified
                     # self.env["download_changed"] = False

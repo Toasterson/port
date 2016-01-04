@@ -79,7 +79,7 @@ def walk_up(bottom, top):
     try:
         names = os.listdir(bottom)
     except Exception as e:
-        print e
+        print(e)
         return
 
     dirs, nondirs = [], []
