@@ -21,7 +21,7 @@ class DotConfigure(IConfigurePlugin):
         else:
             cmd = './configure'
 
-        for option, optvalue in self.port.config.iteritems():
+        for option, optvalue in self.port.config.items():
             if optvalue['user_choice']:
                 if optvalue['enabled'] != '':
                     cmd = cmd + ' ' + optvalue['enabled']

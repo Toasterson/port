@@ -65,7 +65,7 @@ class IConfigurePlugin(IPlugin):
         dialog = Dialog(dialog='dialog')
         dialog.set_background_title('Conguration for {PORTNAME}'.format(PORTNAME=self.port.portname))
         portchoices = []
-        for option, optvalues in self.port.config.iteritems():
+        for option, optvalues in self.port.config.items():
             self.port.config[option]['user_choice'] = False
             portchoices.append((option, optvalues['description'], optvalues['default']))
         code, tags = dialog.checklist('Choose your Configuration for {PORTNAME}'.format(PORTNAME=self.port.portname),
