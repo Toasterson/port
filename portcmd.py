@@ -4,71 +4,67 @@ import os
 import logging
 
 from build import BuildManager
-from argcommand import Command
-from argcommand import Argument
+import argparse
+import sys
 from download import DownLoadManager
 from port import PortFactory
 import locale
 
 
-class DownloadCommand(Command):
-    """
-    Download a Port
-    """
-
-    command_name = 'download'
-    portname = Argument('portname', nargs='?', help='The Port to download', default=os.path.realpath(os.curdir))
-
-    def run(self):
-        port = PortFactory.loadport(self)
-        mgr = DownLoadManager()
-        mgr.download(port)
-
-
-class BuildCommand(Command):
-    """
-    Build a Port
-    """
-
-    command_name = 'build'
-    portname = Argument('portname', nargs='?', help='The Port to download', default=os.path.realpath(os.curdir))
-
-    def run(self):
-        port = PortFactory.loadport(self)
-        # mgr = DownLoadManager()
-        # mgr.download(port)
-        # mgr.extract(port)
-        BuildManager.build(port)
-
-
-class InstallCommand(Command):
-    """
-    Install a Port
-    """
-
-    command_name = 'install'
-    portname = Argument('portname', nargs='?', help='The Port to download', default=os.path.realpath(os.curdir))
-
-    def run(self):
-        print("installing")
-
-
-class PortCommand(Command):
+class PortCmd:
     """
     The Unix Port System Reborn
     """
 
-    subcommands = [BuildCommand, DownloadCommand, InstallCommand]
+    def __init__(self):
+        parser = argparse.ArgumentParser(
+                description='The Unix Port System Reborn',
+                usage='''ports <command> [<args>]
 
-    loglevel = Argument('--log', help='Set Logging level', dest='loglevel')
+The most commonly used ports commands are:
+   download     Download the Port source
+   build        Build the Port
+   install      Install the Port
+''')
+        parser.add_argument('command', help='Subcommand to run')
+        # parse_args defaults to [1:] for args, but you need to
+        # exclude the rest of the args too, or validation will fail
+        args = parser.parse_args(['build'])
+        self.args = ['system/glibc']
+        # args = parser.parse_args(sys.argv[1:2])
+        # self.args = sys.argv[2:]
+        if not hasattr(self, args.command):
+            print('Unrecognized command')
+            parser.print_help()
+            exit(1)
+        # use dispatch pattern to invoke method with same name
+        getattr(self, args.command)()
 
-    def run(self):
-        numeric_level = getattr(logging, self.loglevel.upper(), None)
-        if not isinstance(numeric_level, int):
-            raise ValueError('Invalid log level: %s' % self.loglevel)
-        logging.basicConfig(level=numeric_level)
+    def download(self):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('portname', nargs='?', help='Name of the Port', default=os.path.realpath(os.curdir))
+        port = PortFactory.loadport(parser.parse_args(self.args))
+        mgr = DownLoadManager()
+        mgr.download(port)
+
+    def build(self):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('portname', nargs='?', help='Name of the Port', default=os.path.realpath(os.curdir))
+        port = PortFactory.loadport(parser.parse_args(self.args))
+        mgr = DownLoadManager()
+        mgr.download(port)
+        mgr.extract(port)
+        BuildManager.build(port)
+
+
+
+        # def install(self):
+        #     numeric_level = getattr(logging, self.loglevel.upper(), None)
+        #     if not isinstance(numeric_level, int):
+        #         raise ValueError('Invalid log level: %s' % self.loglevel)
+        #     logging.basicConfig(level=numeric_level)
 
 
 if "__main__" == __name__:
     locale.setlocale(locale.LC_ALL, '')
-    PortCommand.execute(['build', 'system/glibc'])
+    PortCmd()
