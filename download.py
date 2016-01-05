@@ -82,7 +82,7 @@ class DownLoadManager(object):
 
             # Download file.
             # self.env["download_changed"] = True
-            print("Downloading {PORT}").format(PORT=port.name)
+            print("Downloading {PORT}".format(PORT=port.name))
             with open(port.download_filename(), "wb") as file_handle:
                 while True:
                     data = url_handle.read(CHUNK_SIZE)
@@ -91,7 +91,8 @@ class DownLoadManager(object):
                     if content_encoding == 'gzip':
                         data = gzip_handle.decompress(data)
                     file_handle.write(data)
-                    print("Downloaded %s" % port.download_filename())
+
+                print("Downloaded %s" % port.download_filename())
         except BaseException as err:
             raise Exception("Couldn't download %s: %s" % (port.download_url(), err))
 
