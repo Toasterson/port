@@ -8,11 +8,10 @@ import shutil
 # Download URLs in chunks of 256 kB.
 CHUNK_SIZE = 256 * 1024
 
-class DownLoadManager(object):
-    def __init__(self):
-        pass
 
-    def download(self, port):
+class DownLoadManager(object):
+    @staticmethod
+    def download(port):
         # create download cache if needed
         if not os.path.exists(port.download_dir()):
             os.makedirs(port.download_dir())
@@ -50,11 +49,6 @@ class DownLoadManager(object):
             if url_handle.info().get("Content-Length"):
                 if int(size_header) == existing_file_length:
                     # self.env["download_changed"] = False
-                    print("File size returned by webserver matches that "
-                                 "of the cached file: %s bytes" % size_header)
-                    print("WARNING:Matching a download by filesize is a "
-                                    "fallback mechanism that does not guarantee "
-                                    "that a build is unchanged.")
                     print("Using existing %s" % port.download_filename())
                     return
 
@@ -76,7 +70,7 @@ class DownLoadManager(object):
                 pass
             elif content_encoding and content_encoding != 'identity':
                 print("WARNING:Content-Encoding of %s may not be "
-                                "supported" % content_encoding)
+                      "supported" % content_encoding)
 
             gzip_handle = zlib.decompressobj(16 + zlib.MAX_WBITS)
 
@@ -100,7 +94,8 @@ class DownLoadManager(object):
             if url_handle is not None:
                 url_handle.close()
 
-    def extract(self, port):
+    @staticmethod
+    def extract(port):
         shutil.rmtree(port.sources_root(), ignore_errors=True)
         os.makedirs(port.sources_root())
         patoolib.extract_archive(port.download_filename(), outdir=port.sources_root())

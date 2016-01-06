@@ -1,5 +1,5 @@
 from build import IConfigurePlugin
-
+from prefix import Prefix
 import os
 import subprocess
 import shutil
@@ -16,10 +16,12 @@ class DotConfigure(IConfigurePlugin):
                     return
 
     def configure(self):
+        cmd = self.envclean
         if 'seperate_build_dir' in self.port.__dict__:
-            cmd = '../configure'
+            cmd += '../configure '
         else:
-            cmd = './configure'
+            cmd += './configure '
+        cmd += '--prefix=' + Prefix.print() + ' '
 
         for option, optvalue in self.port.config.items():
             if optvalue['user_choice']:

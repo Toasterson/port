@@ -44,16 +44,15 @@ The most commonly used ports commands are:
         parser = argparse.ArgumentParser()
         parser.add_argument('portname', nargs='?', help='Name of the Port', default=os.path.realpath(os.curdir))
         port = PortFactory.loadport(parser.parse_args(self.args))
-        mgr = DownLoadManager()
-        mgr.download(port)
+        DownLoadManager.download(port)
 
     def build(self):
         parser = argparse.ArgumentParser()
         parser.add_argument('portname', nargs='?', help='Name of the Port', default=os.path.realpath(os.curdir))
         port = PortFactory.loadport(parser.parse_args(self.args))
-        mgr = DownLoadManager()
-        mgr.download(port)
-        mgr.extract(port)
+        DownLoadManager.download(port)
+        DownLoadManager.extract(port)
+        BuildManager.configure(port)
         BuildManager.build(port)
 
 
