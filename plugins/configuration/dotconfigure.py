@@ -16,8 +16,9 @@ class DotConfigure(IConfigurePlugin):
                     return
 
     def configure(self):
-        cmd = self.envclean
+        cmd = self.envclean + ' '
         if 'seperate_build_dir' in self.port.__dict__:
+            # Todo Use Port Source Dir instead of assuming build dir is subdir of source dir
             cmd += '../configure '
         else:
             cmd += './configure '

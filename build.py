@@ -8,31 +8,26 @@ class BuildManager(object):
     @staticmethod
     def build(port):
         manager = PluginManager()
-        manager.setPluginPlaces(["plugins", "~/.ports/plugins"])
-        manager.setCategoriesFilter({
-            "Build": IBuildPlugin
-        })
+        manager.setPluginPlaces(["plugins/build", "~/.ports/plugins/build"])
         manager.collectPlugins()
 
         print('Building Port {PORTNAME}'.format(PORTNAME=port.portname))
 
         # Same for the build plugins
-        for plugin in manager.getPluginsOfCategory('Build'):
+        plugins = manager.getAllPlugins()
+        for plugin in manager.getAllPlugins():
             plugin.plugin_object.main(port)
 
     @staticmethod
     def configure(port):
         manager = PluginManager()
-        manager.setPluginPlaces(["plugins", "~/.ports/plugins"])
-        manager.setCategoriesFilter({
-            "Configure": IConfigurePlugin
-        })
+        manager.setPluginPlaces(["plugins/configuration", "~/.ports/plugins/configuration"])
         manager.collectPlugins()
 
         print('Configuring Build for {PORTNAME}'.format(PORTNAME=port.portname))
 
         # Loop through all known configure Plugins We only should ever have one but we don't know which one
-        for plugin in manager.getPluginsOfCategory('Configure'):
+        for plugin in manager.getAllPlugins():
             plugin.plugin_object.main(port)
 
 
@@ -61,8 +56,9 @@ class IConfigurePlugin(IPlugin):
     def __init__(self):
         super(IConfigurePlugin, self).__init__()
         self.does_apply = False
+        self.port = None
 
-    envclean = 'env -u LD_LIBRARY_PATH '
+    envclean = 'env -u LD_LIBRARY_PATH'
 
     @abstractmethod
     def configure(self):
@@ -91,5 +87,4 @@ class IConfigurePlugin(IPlugin):
         self.check()
         if self.does_apply:
             self.ask()
-
             self.configure()
