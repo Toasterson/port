@@ -1,27 +1,17 @@
-from yapsy.PluginManager import PluginManager
 from yapsy.IPlugin import IPlugin
 from abc import abstractmethod
 from dialog import Dialog
 
 
 class BuildManager(object):
-    def __init__(self):
-        self.manager = PluginManager()
-        self.manager.setPluginPlaces([
-            "plugins/building", "~/.ports/plugins/building",
-            "plugins/configuration", "~/.ports/plugins/configuration"
-        ])
-        self.manager.setCategoriesFilter({
-            'Building': IBuildPlugin,
-            'Configuration': IConfigurePlugin
-        })
-        self.manager.collectPlugins()
+    def __init__(self, manager):
+        self.manager = manager
 
     def build(self, port):
 
         print('Building Port {PORTNAME}'.format(PORTNAME=port.portname))
 
-        if not port.is_built:
+        if not hasattr(port, 'is_built'):
             # Same for the build plugins
             for plugin in self.manager.getPluginsOfCategory('Building'):
                 plugin.plugin_object.main(port)
@@ -29,7 +19,7 @@ class BuildManager(object):
     def configure(self, port):
         print('Configuring Build for {PORTNAME}'.format(PORTNAME=port.portname))
 
-        if not port.is_configured:
+        if not hasattr(port, 'is_configured'):
             # Loop through all known configure Plugins We only should ever have one but we don't know which one
             for plugin in self.manager.getPluginsOfCategory('Configuration'):
                 plugin.plugin_object.main(port)
@@ -54,6 +44,7 @@ class IBuildPlugin(IPlugin):
         self.check()
         if self.does_apply:
             self.run()
+            self.port.is_built = True
 
 
 class IConfigurePlugin(IPlugin):
@@ -92,3 +83,4 @@ class IConfigurePlugin(IPlugin):
         if self.does_apply:
             self.ask()
             self.configure()
+            self.port.is_configured = True

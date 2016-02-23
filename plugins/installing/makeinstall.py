@@ -1,10 +1,9 @@
-from build import IBuildPlugin
+from install import IInstallPlugin
 import os
 import subprocess
-import shutil
 
 
-class Makefile(IBuildPlugin):
+class MakeInstall(IInstallPlugin):
     def __init__(self):
         super().__init__()
         self.savedPath = None
@@ -19,7 +18,7 @@ class Makefile(IBuildPlugin):
                     return
 
     def run(self):
-        cmd = 'make'
+        cmd = 'make install'
         try:
             self.savedPath = os.getcwd()
             os.chdir(self.port.source_dir)
@@ -37,4 +36,4 @@ class Makefile(IBuildPlugin):
                 exit(1)
 
         print("Running {0}".format(cmd))
-        subprocess.call(cmd)
+        subprocess.call(cmd.split(' '))
