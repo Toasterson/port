@@ -5,29 +5,31 @@ from dialog import Dialog
 
 
 class BuildManager(object):
-    @staticmethod
-    def build(port):
-        manager = PluginManager()
-        manager.setPluginPlaces(["plugins/build", "~/.ports/plugins/build"])
-        manager.collectPlugins()
+    def __init__(self):
+        self.manager = PluginManager()
+        self.manager.setPluginPlaces([
+            "plugins/building", "~/.ports/plugins/building",
+            "plugins/configuration", "~/.ports/plugins/configuration"
+        ])
+        self.manager.setCategoriesFilter({
+            'Building': IBuildPlugin,
+            'Configuration': IConfigurePlugin
+        })
+        self.manager.collectPlugins()
+
+    def build(self, port):
 
         print('Building Port {PORTNAME}'.format(PORTNAME=port.portname))
 
         # Same for the build plugins
-        plugins = manager.getAllPlugins()
-        for plugin in manager.getAllPlugins():
+        for plugin in self.manager.getPluginsOfCategory('Building'):
             plugin.plugin_object.main(port)
 
-    @staticmethod
-    def configure(port):
-        manager = PluginManager()
-        manager.setPluginPlaces(["plugins/configuration", "~/.ports/plugins/configuration"])
-        manager.collectPlugins()
-
+    def configure(self, port):
         print('Configuring Build for {PORTNAME}'.format(PORTNAME=port.portname))
 
         # Loop through all known configure Plugins We only should ever have one but we don't know which one
-        for plugin in manager.getAllPlugins():
+        for plugin in self.manager.getPluginsOfCategory('Configuration'):
             plugin.plugin_object.main(port)
 
 

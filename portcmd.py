@@ -52,8 +52,9 @@ The most commonly used ports commands are:
         port = PortFactory.loadport(parser.parse_args(self.args))
         DownLoadManager.download(port)
         DownLoadManager.extract(port)
-        BuildManager.configure(port)
-        BuildManager.build(port)
+        buildman = BuildManager()
+        buildman.configure(port)
+        buildman.build(port)
 
 
 
