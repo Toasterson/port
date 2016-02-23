@@ -38,4 +38,4 @@ class Makefile(IBuildPlugin):
 
         print("Running {0}".format(cmd))
         subprocess.call(cmd)
-        print('Blub')
+        self.port.is_built = True

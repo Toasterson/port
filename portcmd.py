@@ -56,9 +56,17 @@ The most commonly used ports commands are:
         buildman.configure(port)
         buildman.build(port)
 
-
-
-        # def install(self):
+    def install(self):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('portname', nargs='?', help='Name of the Port', default=os.path.realpath(os.curdir))
+        port = PortFactory.loadport(parser.parse_args(self.args))
+        DownLoadManager.download(port)
+        DownLoadManager.extract(port)
+        buildman = BuildManager()
+        buildman.configure(port)
+        buildman.build(port)
+        # TODO Install Action
+        # Todo Save Information of Port into file in cache
         #     numeric_level = getattr(logging, self.loglevel.upper(), None)
         #     if not isinstance(numeric_level, int):
         #         raise ValueError('Invalid log level: %s' % self.loglevel)

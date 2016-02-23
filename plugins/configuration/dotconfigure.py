@@ -52,3 +52,4 @@ class DotConfigure(IConfigurePlugin):
                 exit(1)
         print("Running {0}".format(cmd))
         subprocess.call(cmd.split(' '))
+        self.port.is_configured = True

@@ -21,16 +21,18 @@ class BuildManager(object):
 
         print('Building Port {PORTNAME}'.format(PORTNAME=port.portname))
 
-        # Same for the build plugins
-        for plugin in self.manager.getPluginsOfCategory('Building'):
-            plugin.plugin_object.main(port)
+        if not port.is_built:
+            # Same for the build plugins
+            for plugin in self.manager.getPluginsOfCategory('Building'):
+                plugin.plugin_object.main(port)
 
     def configure(self, port):
         print('Configuring Build for {PORTNAME}'.format(PORTNAME=port.portname))
 
-        # Loop through all known configure Plugins We only should ever have one but we don't know which one
-        for plugin in self.manager.getPluginsOfCategory('Configuration'):
-            plugin.plugin_object.main(port)
+        if not port.is_configured:
+            # Loop through all known configure Plugins We only should ever have one but we don't know which one
+            for plugin in self.manager.getPluginsOfCategory('Configuration'):
+                plugin.plugin_object.main(port)
 
 
 class IBuildPlugin(IPlugin):
