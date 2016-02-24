@@ -41,7 +41,7 @@ The most commonly used ports commands are:
         # parse_args defaults to [1:] for args, but you need to
         # exclude the rest of the args too, or validation will fail
         args = parser.parse_args(['install'])
-        self.args = ['system/glibc']
+        self.args = ['runtime/python3']
         # args = parser.parse_args(sys.argv[1:2])
         # self.args = sys.argv[2:]
         if not hasattr(self, args.command):
@@ -72,11 +72,11 @@ The most commonly used ports commands are:
         parser = argparse.ArgumentParser()
         parser.add_argument('portname', nargs='?', help='Name of the Port', default=os.path.realpath(os.curdir))
         port = PortFactory.loadport(parser.parse_args(self.args))
-        # DownLoadManager.download(port)
-        # DownLoadManager.extract(port)
-        # buildman = BuildManager(self.manager)
-        # buildman.configure(port)
-        # buildman.build(port)
+        DownLoadManager.download(port)
+        DownLoadManager.extract(port)
+        buildman = BuildManager(self.manager)
+        buildman.configure(port)
+        buildman.build(port)
         instman = InstallManager(self.manager)
         instman.install(port)
 

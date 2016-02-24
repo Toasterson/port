@@ -24,13 +24,14 @@ class DotConfigure(IConfigurePlugin):
             cmd += './configure '
         cmd += '--prefix=' + Prefix.print() + ' '
 
-        for option, optvalue in self.port.config.items():
-            if optvalue['user_choice']:
-                if optvalue['enabled'] != '':
-                    cmd = cmd + ' ' + optvalue['enabled']
-            else:
-                if optvalue['disabled'] != '':
-                    cmd = cmd + ' ' + optvalue['disabled']
+        if hasattr(self.port, 'config'):
+            for option, optvalue in self.port.config.items():
+                if optvalue['user_choice']:
+                    if optvalue['enabled'] != '':
+                        cmd = cmd + ' ' + optvalue['enabled']
+                else:
+                    if optvalue['disabled'] != '':
+                        cmd = cmd + ' ' + optvalue['disabled']
 
         try:
             self.savedPath = os.getcwd()
@@ -39,7 +40,7 @@ class DotConfigure(IConfigurePlugin):
             print("Error: invalid path {0} Exiting".format(self.port.source_dir))
             exit(1)
 
-        if 'seperate_build_dir' in self.port.__dict__:
+        if hasattr(self.port, 'seperate_build_dir') and self.port.seperate_build_dir == True:
             build_dir = os.path.join(self.port.source_dir, 'build')
             if os.path.exists(build_dir):
                 shutil.rmtree(build_dir)

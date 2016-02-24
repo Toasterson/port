@@ -64,18 +64,20 @@ class IConfigurePlugin(IPlugin):
         pass
 
     def ask(self):
-        dialog = Dialog(dialog='dialog')
-        dialog.set_background_title('Conguration for {PORTNAME}'.format(PORTNAME=self.port.portname))
-        portchoices = []
-        for option, optvalues in self.port.config.items():
-            self.port.config[option]['user_choice'] = False
-            portchoices.append((option, optvalues['description'], optvalues['default']))
-        code, tags = dialog.checklist('Choose your Configuration for {PORTNAME}'.format(PORTNAME=self.port.portname),
-                                      choices=portchoices, title="Port configuration")
-        if code == dialog.OK:
-            for tag in tags:
-                self.port.config[tag]['user_choice'] = True
-        print('\n')
+        if hasattr(self.port, 'config'):
+            dialog = Dialog(dialog='dialog')
+            dialog.set_background_title('Conguration for {PORTNAME}'.format(PORTNAME=self.port.portname))
+            portchoices = []
+            for option, optvalues in self.port.config.items():
+                self.port.config[option]['user_choice'] = False
+                portchoices.append((option, optvalues['description'], optvalues['default']))
+            code, tags = dialog.checklist(
+                'Choose your Configuration for {PORTNAME}'.format(PORTNAME=self.port.portname),
+                choices=portchoices, title="Port configuration")
+            if code == dialog.OK:
+                for tag in tags:
+                    self.port.config[tag]['user_choice'] = True
+            print('\n')
 
     def main(self, port):
         self.port = port
