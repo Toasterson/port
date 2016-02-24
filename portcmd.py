@@ -41,7 +41,7 @@ The most commonly used ports commands are:
         # parse_args defaults to [1:] for args, but you need to
         # exclude the rest of the args too, or validation will fail
         args = parser.parse_args(['install'])
-        self.args = ['runtime/python3']
+        self.args = ['runtime/python']
         # args = parser.parse_args(sys.argv[1:2])
         # self.args = sys.argv[2:]
         if not hasattr(self, args.command):

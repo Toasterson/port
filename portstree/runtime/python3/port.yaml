@@ -1,5 +1,0 @@
----
-base_url: "https://www.python.org/ftp/python/3.5.1/"
-name: Python
-suffix: tar.xz
-version: "3.5.1"

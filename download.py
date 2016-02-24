@@ -4,14 +4,21 @@ from urllib.error import HTTPError
 import zlib
 import patoolib
 import shutil
+import hglib
 
 # Download URLs in chunks of 256 kB.
 CHUNK_SIZE = 256 * 1024
 
 
 class DownLoadManager(object):
-    @staticmethod
-    def download(port):
+    def source_get(self, port):
+        pass
+
+    def download(self, port):
+        # TODO Decide Whether to get the Source per scm or archive
+        self.download_file(port)
+
+    def download_file(self, port):
         # create download cache if needed
         if not os.path.exists(port.download_dir()):
             os.makedirs(port.download_dir())

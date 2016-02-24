@@ -1,0 +1,12 @@
+---
+name: Python
+description: "The Python Scripting Languange Runtime"
+source:
+    hg: "https://hg.python.org/cpython/"
+    file:
+        3.5.1:
+            url: "https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tar.xz"
+        3.4.3:
+            url: "https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tar.xz"
+        2.7.9:
+            url: "https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tar.xz"
