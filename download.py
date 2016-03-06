@@ -1,6 +1,7 @@
 import os
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
+from dialog import Dialog
 import zlib
 import patoolib
 import shutil
@@ -10,13 +11,53 @@ import hglib
 CHUNK_SIZE = 256 * 1024
 
 
+def filter_versions(version):
+    version_string = version[0].decode()
+    if version_string == 'tip':
+        return False
+    for value in ['rc', 'a', 'b', 'c']:
+        head, sep, tail = version_string.partition(value)
+        if sep != '' and tail != '':
+            return False
+    return True
+
+
+def ask_version(versions, port):
+    versions = list(filter(filter_versions, versions))
+    dialog = Dialog(dialog='dialog')
+    dialog.set_background_title('Choose version for {PORTNAME}'.format(PORTNAME=port.portname))
+    choices = []
+    for version in versions:
+        choices.append((version[0].decode(), "", False))
+    choices = sorted(choices, key=lambda v: v[0])
+    choices.append((choices.pop()[0], "", True))
+    choices = list(reversed(choices))
+    code, tag = dialog.radiolist(
+        'Choose version for {PORTNAME}'.format(PORTNAME=port.portname),
+        choices=choices, title="Choose Version")
+    if code == dialog.OK:
+        return tag
+    exit(1)
+    print('\n')
+
+
 class DownLoadManager(object):
-    def source_get(self, port):
+    def __init__(self, manager):
+        self.manager = manager
+
+    def hg_get(self, port):
+        if not os.path.exists(port.sources_root() + '/.hg'):
+            hglib.clone(port.source.get('hg'), port.sources_root())
+        client = hglib.open(port.sources_root())
+        version = ask_version(client.tags(), port)
+        client.update(version.encode())
+        port.version = version
+
+    def git_get(self, port):
         pass
 
-    def download(self, port):
-        # TODO Decide Whether to get the Source per scm or archive
-        self.download_file(port)
+    def svn_get(self, port):
+        pass
 
     def download_file(self, port):
         # create download cache if needed
@@ -93,7 +134,10 @@ class DownLoadManager(object):
                         data = gzip_handle.decompress(data)
                     file_handle.write(data)
 
-                print("Downloaded %s" % port.download_filename())
+            print("Downloaded %s" % port.download_filename())
+            shutil.rmtree(port.sources_root(), ignore_errors=True)
+            os.makedirs(port.sources_root())
+            patoolib.extract_archive(port.download_filename(), outdir=port.sources_root())
         except BaseException as err:
             raise Exception("Couldn't download %s: %s" % (port.download_url(), err))
 
@@ -101,8 +145,19 @@ class DownLoadManager(object):
             if url_handle is not None:
                 url_handle.close()
 
-    @staticmethod
-    def extract(port):
-        shutil.rmtree(port.sources_root(), ignore_errors=True)
-        os.makedirs(port.sources_root())
-        patoolib.extract_archive(port.download_filename(), outdir=port.sources_root())
+    def download(self, port):
+        if hasattr(port, 'source'):
+            if 'hg' in port.source:
+                self.hg_get(port)
+            elif 'git' in port.source:
+                self.git_get(port)
+            elif 'svn' in port.source:
+                self.svn_get(port)
+            elif 'file' in port.source:
+                self.download_file(port)
+            else:
+                print('No Supported Source found in the Metadata')
+                exit(1)
+        else:
+            print('No Source attribute found in Metadata')
+            exit(1)

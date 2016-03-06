@@ -40,7 +40,7 @@ The most commonly used ports commands are:
         parser.add_argument('command', help='Subcommand to run')
         # parse_args defaults to [1:] for args, but you need to
         # exclude the rest of the args too, or validation will fail
-        args = parser.parse_args(['install'])
+        args = parser.parse_args(['download'])
         self.args = ['runtime/python']
         # args = parser.parse_args(sys.argv[1:2])
         # self.args = sys.argv[2:]
@@ -51,19 +51,21 @@ The most commonly used ports commands are:
         # use dispatch pattern to invoke method with same name
         getattr(self, args.command)()
         # Todo Save Information of Port into file in cache
+        # Note make metadata cache per prefix
 
     def download(self):
         parser = argparse.ArgumentParser()
         parser.add_argument('portname', nargs='?', help='Name of the Port', default=os.path.realpath(os.curdir))
         port = PortFactory.loadport(parser.parse_args(self.args))
-        DownLoadManager.download(port)
+        dlman = DownLoadManager(self.manager)
+        dlman.download(port)
 
     def build(self):
         parser = argparse.ArgumentParser()
         parser.add_argument('portname', nargs='?', help='Name of the Port', default=os.path.realpath(os.curdir))
         port = PortFactory.loadport(parser.parse_args(self.args))
-        DownLoadManager.download(port)
-        DownLoadManager.extract(port)
+        dlman = DownLoadManager(self.manager)
+        dlman.download(port)
         buildman = BuildManager(self.manager)
         buildman.configure(port)
         buildman.build(port)
@@ -72,8 +74,8 @@ The most commonly used ports commands are:
         parser = argparse.ArgumentParser()
         parser.add_argument('portname', nargs='?', help='Name of the Port', default=os.path.realpath(os.curdir))
         port = PortFactory.loadport(parser.parse_args(self.args))
-        DownLoadManager.download(port)
-        DownLoadManager.extract(port)
+        dlman = DownLoadManager(self.manager)
+        dlman.download(port)
         buildman = BuildManager(self.manager)
         buildman.configure(port)
         buildman.build(port)
