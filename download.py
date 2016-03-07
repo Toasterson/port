@@ -28,7 +28,15 @@ def ask_version(versions, port):
     dialog.set_background_title('Choose version for {PORTNAME}'.format(PORTNAME=port.portname))
     choices = []
     for version in versions:
-        choices.append((version[0].decode(), "", False))
+        if type(version) == tuple:
+            ver = version[0]
+        else:
+            ver = version
+
+        if type(ver) == bytes:
+            choices.append((ver.decode(), "", False))
+        else:
+            choices.append((ver, "", False))
     choices = sorted(choices, key=lambda v: v[0])
     choices.append((choices.pop()[0], "", True))
     choices = list(reversed(choices))
@@ -58,6 +66,13 @@ class DownLoadManager(object):
 
     def svn_get(self, port):
         pass
+
+    def file_get(self, port):
+        versions = []
+        for version in port.source.file:
+            versions.append(version)
+        ask_version(versions, port)
+        self.download_file(port)
 
     def download_file(self, port):
         # create download cache if needed
@@ -154,7 +169,7 @@ class DownLoadManager(object):
             elif 'svn' in port.source:
                 self.svn_get(port)
             elif 'file' in port.source:
-                self.download_file(port)
+                self.file_get(port)
             else:
                 print('No Supported Source found in the Metadata')
                 exit(1)

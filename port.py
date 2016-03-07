@@ -19,14 +19,21 @@ class Port(object):
         self.name = ''
         self.sources_root_scheme = '~/.ports/cache/{PORTNAME}/src'
         self.download_dir_scheme = '~/.ports/cache/{PORTNAME}/downloads'
+        self.filename_scheme = '{PORTNAME}-{VERSION}.tar.gz'
 
     def sources_root(self):
         return os.path.expanduser(
-            self.sources_root_scheme.format(PORTNAME=self.portname, VERSION=self.version, NAME=self.name))
+            self.sources_root_scheme.format(PORTNAME=self.portname))
 
     def download_dir(self):
         return os.path.expanduser(
-            self.download_dir_scheme.format(PORTNAME=self.portname, VERSION=self.version, NAME=self.name))
+            self.download_dir_scheme.format(PORTNAME=self.portname))
+
+    def download_filename(self):
+        return os.path.expanduser(
+            self.download_dir_scheme.format(PORTNAME=self.portname) + '/' + self.filename_scheme.format(
+                PORTNAME=self.portname, VERSION=self.version)
+        )
 
 
 class PortFactory(object):
