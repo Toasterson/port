@@ -4,7 +4,15 @@ from dialog import Dialog
 import logging
 import shutil
 import os
-from config import ConfigurationManager as cm
+
+
+def make_build_dirs(port):
+    for arch in ['i86', 'amd64']:
+        build_dir = os.path.join(port.build_root(), arch)
+        setattr(port, 'build_dir_{0}'.format(arch), build_dir)
+        if os.path.exists(build_dir):
+            shutil.rmtree(build_dir)
+        os.makedirs(build_dir)
 
 
 class BuildManager(object):
@@ -23,8 +31,8 @@ class BuildManager(object):
 
     def configure(self, port):
         logging.debug('Configuring Build for {0}'.format(port.portname))
-
         if not hasattr(port, 'is_configured'):
+            make_build_dirs(port)
             # Loop through all known configure Plugins We only should ever have one but we don't know which one
             for plugin in self.manager.getPluginsOfCategory('Configuration'):
                 if not hasattr(port, 'configuration_plugin'):
@@ -36,10 +44,12 @@ class IBuildPlugin(IPlugin):
         super(IBuildPlugin, self).__init__()
         self.does_apply = False
         self.port = None
+        self.savedPath = None
+        self.filename = None
 
-    @abstractmethod
     def check(self):
-        pass
+        if os.path.exists(os.path.join(getattr(self.port, 'build_dir_amd64'), self.filename)):
+            self.does_apply = True
 
     @abstractmethod
     def run(self):
@@ -49,13 +59,22 @@ class IBuildPlugin(IPlugin):
         self.port = port
         self.check()
         if self.does_apply:
-            self.run()
+            for arch in ['amd64']:
+                try:
+                    self.savedPath = os.getcwd()
+                    os.chdir(getattr(self.port, 'build_dir_{0}'.format(arch)))
+                except:
+                    raise Exception("Error: port source dir {0} does not exist".format(self.port.build_dir))
+                self.run()
             self.port.is_built = True
+            os.chdir(self.savedPath)
 
 
 class IConfigurePlugin(IPlugin):
     def __init__(self):
         super(IConfigurePlugin, self).__init__()
+        self.pluginname = None
+        self.filename = None
         self.does_apply = False
         self.port = None
         self.savedPath = None
@@ -66,9 +85,9 @@ class IConfigurePlugin(IPlugin):
     def configure(self):
         pass
 
-    @abstractmethod
     def check(self):
-        pass
+        if os.path.exists(os.path.join(self.port.sources_root(), self.filename)):
+            self.does_apply = True
 
     def ask(self):
         if hasattr(self.port, 'config'):
@@ -86,17 +105,6 @@ class IConfigurePlugin(IPlugin):
                     self.port.config[tag]['user_choice'] = True
             print('\n')
 
-    def make_build_dir(self):
-        self.port.build_dir = os.path.join(self.port.build_root(), cm.get('arch', 'i86'))
-        if os.path.exists(self.port.build_dir):
-            shutil.rmtree(self.port.build_dir)
-        os.makedirs(self.port.build_dir)
-        try:
-            self.savedPath = os.getcwd()
-            os.chdir(self.port.build_dir)
-        except:
-            raise Exception("Error: port source dir {0} does not exist".format(self.port.source_dir))
-
     def main(self, port):
         # TODO make configuration options that are preset in port.yaml and can be modified via commandline
         # TODO make environement configurable and controlled
@@ -105,6 +113,25 @@ class IConfigurePlugin(IPlugin):
         self.check()
         if self.does_apply:
             self.ask()
-            self.make_build_dir()
-            self.configure()
+            for arch in ['amd64']:
+                try:
+                    self.savedPath = os.getcwd()
+                    os.chdir(getattr(self.port, 'build_dir_{0}'.format(arch)))
+                except:
+                    raise Exception("Error: port source dir {0} does not exist".format(self.port.build_dir))
+                self.configure()
             self.port.is_configured = True
+            os.chdir(self.savedPath)
+            self.port.configuration_plugin = self.pluginname
+
+    def get_config_options(self):
+        cmd = ''
+        if hasattr(self.port, 'config'):
+            for option, optvalue in self.port.config.items():
+                if optvalue['user_choice']:
+                    if optvalue['enabled'] != '':
+                        cmd = cmd + ' ' + optvalue['enabled']
+                else:
+                    if optvalue['disabled'] != '':
+                        cmd = cmd + ' ' + optvalue['disabled']
+        return cmd
