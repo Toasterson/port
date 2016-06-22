@@ -79,8 +79,6 @@ class IConfigurePlugin(IPlugin):
         self.port = None
         self.savedPath = None
 
-    envclean = 'env -u LD_LIBRARY_PATH'
-
     @abstractmethod
     def configure(self):
         pass
@@ -88,6 +86,12 @@ class IConfigurePlugin(IPlugin):
     def check(self):
         if os.path.exists(os.path.join(self.port.sources_root(), self.filename)):
             self.does_apply = True
+
+    def getConfigureOptionsEnvironment(self):
+        string = ""
+        for key, value in self.port.getEnvironmentOptions().items():
+            string += " {0}={1}".format(key, value)
+        return string
 
     def ask(self):
         if hasattr(self.port, 'config'):
@@ -125,13 +129,13 @@ class IConfigurePlugin(IPlugin):
             self.port.configuration_plugin = self.pluginname
 
     def get_config_options(self):
-        cmd = ''
+        string = ''
         if hasattr(self.port, 'config'):
             for option, optvalue in self.port.config.items():
                 if optvalue['user_choice']:
                     if optvalue['enabled'] != '':
-                        cmd = cmd + ' ' + optvalue['enabled']
+                        string += ' ' + optvalue['enabled']
                 else:
                     if optvalue['disabled'] != '':
-                        cmd = cmd + ' ' + optvalue['disabled']
-        return cmd
+                        string += ' ' + optvalue['disabled']
+        return string

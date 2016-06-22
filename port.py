@@ -3,6 +3,7 @@ import io
 import sys
 import logging
 from yaml import load, dump
+from environment import EnvironmentManager
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -10,11 +11,16 @@ except ImportError:
     from yaml import Loader, Dumper
 
 
+def get_platform():
+    return sys.platform
+
+
 # TODO move default values from __init__ to config
 class Port(object):
     def __init__(self, portname):
         # TODO make function to transform fullpath to portname
         self.portname = portname
+        self.platform = get_platform()
         self.version = ''
         self.name = ''
         self.default_version = {}
@@ -22,9 +28,11 @@ class Port(object):
         self.download_dir_scheme = '~/.ports/cache/{PORTNAME}/downloads'
         self.build_dir_scheme = '~/.ports/cache/{PORTNAME}/build'
         self.filename_scheme = '{PORTNAME}-{VERSION}.tar.gz'
+        self.environment = {}
+        self.env = EnvironmentManager()
 
     def get_default_version(self):
-        return self.default_version.get(sys.platform)
+        return self.default_version.get(get_platform())
 
     def sources_root(self):
         return os.path.expanduser(self.sources_root_scheme.format(PORTNAME=self.portname))
@@ -41,6 +49,18 @@ class Port(object):
     def build_root(self):
         return os.path.expanduser(self.build_dir_scheme.format(PORTNAME=self.portname))
 
+    def getEnvironment(self):
+        return self.env.getEnvironment()
+
+    def getEnvironmentVariable(self, key):
+        return self.env.getVariable(key)
+
+    def getEnvironmentOptions(self):
+        return self.env.getOptions()
+
+    def updateEnvironmentVariable(self, key, value):
+        self.env.updateVariable(key, value)
+
 
 class PortFactory(object):
     @staticmethod
@@ -54,15 +74,22 @@ class PortFactory(object):
         port = Port(args.portname)
         # TODO move this to config.yaml and make functions to load the Config
         root = './portstree'
-        for dir, subdirs, files in walk_up(os.path.join(root, port.portname), root):
-            for f in files:
-                if f == 'port.yaml' or f == '{0}.yaml'.format(sys.platform):
-                    logging.info('Loading port metadata for {0} from {1}'.format(port.portname, f))
-                    with io.open(os.path.join(dir, f), 'r') as port_desc:
-                        port.__dict__.update(load(port_desc, Loader=Loader))
+        portsfile = os.path.join(root, port.portname, 'port.yaml')
+        logging.info('Loading port metadata for {0} from {1}'.format(port.portname, portsfile))
+        with io.open(portsfile, 'r') as port_desc:
+            port.__dict__.update(load(port_desc, Loader=Loader))
+
         if port.name == '':
-            logging.critical('ERROR:Port {PORTNAME} could not be loaded'.format(PORTNAME=port.portname))
-            sys.exit(1)
+            raise Exception('ERROR:Port {0} could not be loaded'.format(port.portname))
+
+        envfile = os.path.join(root, '{0}.yaml'.format(port.platform))
+        with io.open(envfile, 'r') as env_desc:
+            logging.info('Loading environment variables for {0} from {1}'.format(port.portname, envfile))
+            port.env.loadEnvironment(load(env_desc, Loader=Loader))
+
+        if hasattr(port, 'environment'):
+            port.env.loadEnvironment(port.environment)
+            del port.environment
         # TODO load dependency metadata here
         return port
 

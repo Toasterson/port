@@ -1,6 +1,5 @@
 from build import IConfigurePlugin
 from prefix import Prefix
-import os
 import subprocess
 import logging
 
@@ -12,9 +11,9 @@ class DotConfigure(IConfigurePlugin):
         self.filename = 'configure'
 
     def configure(self):
-        cmd = self.envclean + ' '
-        cmd += self.port.sources_root() + '/' + self.filename + ' '
+        cmd = self.port.sources_root() + '/' + self.filename + ' '
         cmd += '--prefix=' + Prefix.print() + ' '
         cmd += self.get_config_options()
+        cmd += self.getConfigureOptionsEnvironment()
         logging.debug("Running {0}".format(cmd))
-        subprocess.call(cmd.split(' '))
+        subprocess.call(cmd.split(' '), env=self.port.getEnvironment())

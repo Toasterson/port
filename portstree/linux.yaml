@@ -1,0 +1,12 @@
+---
+environment:
+    BITS: "64"
+    CC: "/usr/bin/gcc"
+    CXX: "/usr/bin/g++"
+    F77: "/usr/bin/gfortran"
+    FC: "/usr/bin/gfortran"
+    CFLAGS: "-m{BITS}"
+    CXXFLAGS: "-m{BITS}"
+    LDFLAGS: "-m{BITS}"
+    CCACHE: "/usr/bin/ccache"
+    PKG_CONFIG_PATH: "/usr/bin/pkg-config"
