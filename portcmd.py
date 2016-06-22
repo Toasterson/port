@@ -8,6 +8,8 @@ from port import PortFactory
 import locale
 from install import InstallManager, IInstallPlugin
 from yapsy.PluginManager import PluginManager
+import logging
+
 
 class PortCmd:
     """
@@ -27,6 +29,8 @@ class PortCmd:
             'Installing': IInstallPlugin
         })
         self.manager.collectPlugins()
+        self.logging = logging
+        self.logging.basicConfig(level=logging.DEBUG)
 
         parser = argparse.ArgumentParser(
                 description='The Unix Port System Reborn',
@@ -40,7 +44,7 @@ The most commonly used ports commands are:
         parser.add_argument('command', help='Subcommand to run')
         # parse_args defaults to [1:] for args, but you need to
         # exclude the rest of the args too, or validation will fail
-        args = parser.parse_args(['download'])
+        args = parser.parse_args(['build'])
         self.args = ['runtime/python']
         # args = parser.parse_args(sys.argv[1:2])
         # self.args = sys.argv[2:]

@@ -4,16 +4,16 @@ import io
 
 class ConfigurationManager:
     @staticmethod
-    def get(key):
+    def get(key, default):
         try:
             with io.open('~/.ports/config.yaml', 'r+') as config_desc:
                 config = yaml.load(config_desc)
                 if hasattr(config, key):
                     return config[key]
                 else:
-                    return None
+                    return default
         finally:
-            return None
+            return default
 
     @staticmethod
     def mget(keys):

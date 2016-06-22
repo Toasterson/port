@@ -17,23 +17,29 @@ class Port(object):
         self.portname = portname
         self.version = ''
         self.name = ''
+        self.default_version = {}
         self.sources_root_scheme = '~/.ports/cache/{PORTNAME}/src'
         self.download_dir_scheme = '~/.ports/cache/{PORTNAME}/downloads'
+        self.build_dir_scheme = '~/.ports/cache/{PORTNAME}/build'
         self.filename_scheme = '{PORTNAME}-{VERSION}.tar.gz'
 
+    def get_default_version(self):
+        return self.default_version.get(sys.platform)
+
     def sources_root(self):
-        return os.path.expanduser(
-            self.sources_root_scheme.format(PORTNAME=self.portname))
+        return os.path.expanduser(self.sources_root_scheme.format(PORTNAME=self.portname))
 
     def download_dir(self):
-        return os.path.expanduser(
-            self.download_dir_scheme.format(PORTNAME=self.portname))
+        return os.path.expanduser(self.download_dir_scheme.format(PORTNAME=self.portname))
 
     def download_filename(self):
         return os.path.expanduser(
             self.download_dir_scheme.format(PORTNAME=self.portname) + '/' + self.filename_scheme.format(
                 PORTNAME=self.portname, VERSION=self.version)
         )
+
+    def build_root(self):
+        return os.path.expanduser(self.build_dir_scheme.format(PORTNAME=self.portname))
 
 
 class PortFactory(object):
@@ -51,11 +57,11 @@ class PortFactory(object):
         for dir, subdirs, files in walk_up(os.path.join(root, port.portname), root):
             for f in files:
                 if f == 'port.yaml' or f == '{0}.yaml'.format(sys.platform):
-                    logging.info('Loading port metadata from {0}'.format(f))
+                    logging.info('Loading port metadata for {0} from {1}'.format(port.portname, f))
                     with io.open(os.path.join(dir, f), 'r') as port_desc:
                         port.__dict__.update(load(port_desc, Loader=Loader))
         if port.name == '':
-            print('ERROR:Port {PORTNAME} could not be loaded'.format(PORTNAME=port.portname))
+            logging.critical('ERROR:Port {PORTNAME} could not be loaded'.format(PORTNAME=port.portname))
             sys.exit(1)
         # TODO load dependency metadata here
         return port

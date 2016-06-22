@@ -6,6 +6,7 @@ import zlib
 import patoolib
 import shutil
 import hglib
+import logging
 
 # Download URLs in chunks of 256 kB.
 CHUNK_SIZE = 256 * 1024
@@ -45,8 +46,8 @@ def ask_version(versions, port):
         choices=choices, title="Choose Version")
     if code == dialog.OK:
         return tag
-    exit(1)
-    print('\n')
+    elif code == dialog.CANCEL:
+        return port.get_default_version()
 
 
 class DownLoadManager(object):
@@ -55,10 +56,17 @@ class DownLoadManager(object):
 
     def hg_get(self, port):
         if not os.path.exists(port.sources_root() + '/.hg'):
+            logging.debug('Cloning Mercurial repository {0} into {1}'.format(port.portname, port.sources_root()))
             hglib.clone(port.source.get('hg'), port.sources_root())
+        else:
+            logging.debug('Using existing repository in {0}'.format(port.sources_root()))
         client = hglib.open(port.sources_root())
         version = ask_version(client.tags(), port)
+        if version is None:
+            raise Exception('No version selected and no default version found')
+        logging.debug('Version {0} was selected'.format(version))
         client.update(version.encode())
+        logging.debug('Source is now at Version {0}'.format(version))
         port.version = version
 
     def git_get(self, port):
@@ -98,8 +106,8 @@ class DownLoadManager(object):
                 if http_err.code == 304:
                     # resource not modified
                     # self.env["download_changed"] = False
-                    print("Item at URL is unchanged.")
-                    print("Using existing %s" % port.download_filename())
+                    logging.debug("Item at URL is unchanged.")
+                    logging.debug("Using existing %s" % port.download_filename())
                     return
                 else:
                     raise
@@ -112,7 +120,7 @@ class DownLoadManager(object):
             if url_handle.info().get("Content-Length"):
                 if int(size_header) == existing_file_length:
                     # self.env["download_changed"] = False
-                    print("Using existing %s" % port.download_filename())
+                    logging.debug("Using existing %s" % port.download_filename())
                     return
 
             # Handle edge case where server responds with a
@@ -132,14 +140,14 @@ class DownLoadManager(object):
                 # mentioned above.
                 pass
             elif content_encoding and content_encoding != 'identity':
-                print("WARNING:Content-Encoding of %s may not be "
-                      "supported" % content_encoding)
+                logging.warning("WARNING:Content-Encoding of %s may not be "
+                                "supported" % content_encoding)
 
             gzip_handle = zlib.decompressobj(16 + zlib.MAX_WBITS)
 
             # Download file.
             # self.env["download_changed"] = True
-            print("Downloading {PORT}".format(PORT=port.name))
+            logging.debug("Downloading {PORT}".format(PORT=port.name))
             with open(port.download_filename(), "wb") as file_handle:
                 while True:
                     data = url_handle.read(CHUNK_SIZE)
@@ -149,7 +157,7 @@ class DownLoadManager(object):
                         data = gzip_handle.decompress(data)
                     file_handle.write(data)
 
-            print("Downloaded %s" % port.download_filename())
+            logging.debug("Downloaded %s" % port.download_filename())
             shutil.rmtree(port.sources_root(), ignore_errors=True)
             os.makedirs(port.sources_root())
             patoolib.extract_archive(port.download_filename(), outdir=port.sources_root())
@@ -163,16 +171,18 @@ class DownLoadManager(object):
     def download(self, port):
         if hasattr(port, 'source'):
             if 'hg' in port.source:
+                logging.debug('Downloading using Mercurial')
                 self.hg_get(port)
             elif 'git' in port.source:
+                logging.debug('Downloading using git')
                 self.git_get(port)
             elif 'svn' in port.source:
+                logging.debug('Downloading using Subversion')
                 self.svn_get(port)
             elif 'file' in port.source:
+                logging.debug('Downloading using http-file')
                 self.file_get(port)
             else:
-                print('No Supported Source found in the Metadata')
-                exit(1)
+                raise Exception('No Supported Source found in the Metadata')
         else:
-            print('No Source attribute found in Metadata')
-            exit(1)
+            raise Exception('No Source attribute found in Metadata')

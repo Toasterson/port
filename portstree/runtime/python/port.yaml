@@ -1,6 +1,10 @@
 ---
 name: Python
 description: "The Python Scripting Languange Runtime"
+default_version:
+    linux: "v3.5.1"
+    sunos: "v3.4.0"
+    freebsd: "v3.5.1"
 source:
     hg: "https://hg.python.org/cpython/"
     file:

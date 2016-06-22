@@ -1,16 +1,17 @@
 from build import IBuildPlugin
 import os
 import subprocess
-import shutil
+import logging
 
 
+# TODO i86 and amd64 dual build
 class Makefile(IBuildPlugin):
     def __init__(self):
         super().__init__()
         self.savedPath = None
 
     def check(self):
-        for dir, subdirs, files in os.walk(self.port.sources_root()):
+        for dir, subdirs, files in os.walk(self.port.build_dir):
             for f in files:
                 if f == 'Makefile':
                     self.does_apply = True
@@ -22,19 +23,10 @@ class Makefile(IBuildPlugin):
         cmd = 'make'
         try:
             self.savedPath = os.getcwd()
-            os.chdir(self.port.source_dir)
+            os.chdir(self.port.build_dir)
         except:
-            print("Error: invalid path {0} Exiting".format(self.port.source_dir))
-            exit(1)
+            raise Exception("Error: build dir path {0} does not exist".format(self.port.build_dir))
 
-        if 'seperate_build_dir' in self.port.__dict__:
-            build_dir = os.path.join(self.port.source_dir, 'build')
-            try:
-                self.savedPath = os.getcwd()
-                os.chdir(build_dir)
-            except:
-                print("Error: invalid path {0} Exiting".format(build_dir))
-                exit(1)
-
-        print("Running {0}".format(cmd))
+        logging.debug("Running {0} in {1}".format(cmd, self.port.build_dir))
         subprocess.call(cmd)
+        os.chdir(self.savedPath)

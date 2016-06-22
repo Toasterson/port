@@ -8,7 +8,7 @@ import logging
 
 
 # TODO i86 and amd64 dual build
-class DotConfigure(IConfigurePlugin):
+class AutogenSh(IConfigurePlugin):
     def __init__(self):
         super().__init__()
         self.savedPath = None
@@ -36,6 +36,7 @@ class DotConfigure(IConfigurePlugin):
                     if optvalue['disabled'] != '':
                         cmd = cmd + ' ' + optvalue['disabled']
 
+        # TODO refactor into seperate function
         self.port.build_dir = os.path.join(self.port.build_root(), cm.get('arch', 'i86'))
         if os.path.exists(self.port.build_dir):
             shutil.rmtree(self.port.build_dir)

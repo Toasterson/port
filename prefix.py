@@ -8,8 +8,4 @@ class Prefix:
 
     @staticmethod
     def print():
-        prefix = ConfigurationManager.get('prefix')
-        if prefix is None:
-            return '/opt/ports'
-        else:
-            return prefix
+        return ConfigurationManager.get('prefix', '/opt/ports')

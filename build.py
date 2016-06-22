@@ -1,6 +1,7 @@
 from yapsy.IPlugin import IPlugin
 from abc import abstractmethod
 from dialog import Dialog
+import logging
 
 
 class BuildManager(object):
@@ -9,20 +10,22 @@ class BuildManager(object):
 
     def build(self, port):
 
-        print('Building Port {PORTNAME}'.format(PORTNAME=port.portname))
+        logging.debug('Building Port {0}'.format(port.portname))
 
         if not hasattr(port, 'is_built'):
             # Same for the build plugins
             for plugin in self.manager.getPluginsOfCategory('Building'):
-                plugin.plugin_object.main(port)
+                if not hasattr(port, 'build_plugin'):
+                    plugin.plugin_object.main(port)
 
     def configure(self, port):
-        print('Configuring Build for {PORTNAME}'.format(PORTNAME=port.portname))
+        logging.debug('Configuring Build for {0}'.format(port.portname))
 
         if not hasattr(port, 'is_configured'):
             # Loop through all known configure Plugins We only should ever have one but we don't know which one
             for plugin in self.manager.getPluginsOfCategory('Configuration'):
-                plugin.plugin_object.main(port)
+                if not hasattr(port, 'configuration_plugin'):
+                    plugin.plugin_object.main(port)
 
 
 class IBuildPlugin(IPlugin):
