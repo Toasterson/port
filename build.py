@@ -2,6 +2,9 @@ from yapsy.IPlugin import IPlugin
 from abc import abstractmethod
 from dialog import Dialog
 import logging
+import shutil
+import os
+from config import ConfigurationManager as cm
 
 
 class BuildManager(object):
@@ -55,6 +58,7 @@ class IConfigurePlugin(IPlugin):
         super(IConfigurePlugin, self).__init__()
         self.does_apply = False
         self.port = None
+        self.savedPath = None
 
     envclean = 'env -u LD_LIBRARY_PATH'
 
@@ -82,10 +86,25 @@ class IConfigurePlugin(IPlugin):
                     self.port.config[tag]['user_choice'] = True
             print('\n')
 
+    def make_build_dir(self):
+        self.port.build_dir = os.path.join(self.port.build_root(), cm.get('arch', 'i86'))
+        if os.path.exists(self.port.build_dir):
+            shutil.rmtree(self.port.build_dir)
+        os.makedirs(self.port.build_dir)
+        try:
+            self.savedPath = os.getcwd()
+            os.chdir(self.port.build_dir)
+        except:
+            raise Exception("Error: port source dir {0} does not exist".format(self.port.source_dir))
+
     def main(self, port):
+        # TODO make configuration options that are preset in port.yaml and can be modified via commandline
+        # TODO make environement configurable and controlled
+        # TODO i86 and amd64 dual build
         self.port = port
         self.check()
         if self.does_apply:
             self.ask()
+            self.make_build_dir()
             self.configure()
             self.port.is_configured = True
