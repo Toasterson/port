@@ -1,6 +1,6 @@
 ---
 environment:
-    BITS: "64"
+    BITS: "32"
     CC: "/usr/bin/gcc"
     CXX: "/usr/bin/g++"
     F77: "/usr/bin/gfortran"

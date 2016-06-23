@@ -7,9 +7,9 @@ import os
 
 
 def make_build_dirs(port):
-    for arch in ['i86', 'amd64']:
-        build_dir = os.path.join(port.build_root(), arch)
-        setattr(port, 'build_dir_{0}'.format(arch), build_dir)
+    for bits in ['32', '64']:
+        build_dir = os.path.join(port.build_root(), bits)
+        setattr(port, 'build_dir_{0}'.format(bits), build_dir)
         if os.path.exists(build_dir):
             shutil.rmtree(build_dir)
         os.makedirs(build_dir)
@@ -46,25 +46,34 @@ class IBuildPlugin(IPlugin):
         self.port = None
         self.savedPath = None
         self.filename = None
+        self.build_bits = ['32', '64']
 
     def check(self):
-        if os.path.exists(os.path.join(getattr(self.port, 'build_dir_amd64'), self.filename)):
+        if os.path.exists(os.path.join(getattr(self.port, 'build_dir_64'), self.filename)) or os.path.exists(
+                os.path.join(getattr(self.port, 'build_dir_32'), self.filename)):
             self.does_apply = True
 
     @abstractmethod
     def run(self):
         pass
 
+    def getConfigureOptionsEnvironment(self):
+        string = ""
+        for key, value in self.port.getEnvironmentOptions().items():
+            string += " {0}={1}".format(key, value)
+        return string
+
     def main(self, port):
         self.port = port
         self.check()
         if self.does_apply:
-            for arch in ['amd64']:
+            for bits in self.build_bits:
                 try:
                     self.savedPath = os.getcwd()
-                    os.chdir(getattr(self.port, 'build_dir_{0}'.format(arch)))
+                    os.chdir(getattr(self.port, 'build_dir_{0}'.format(bits)))
                 except:
                     raise Exception("Error: port source dir {0} does not exist".format(self.port.build_dir))
+                self.port.updateEnvironmentVariable('BITS', bits)
                 self.run()
             self.port.is_built = True
             os.chdir(self.savedPath)
@@ -78,6 +87,7 @@ class IConfigurePlugin(IPlugin):
         self.does_apply = False
         self.port = None
         self.savedPath = None
+        self.build_bits = ['32', '64']
 
     @abstractmethod
     def configure(self):
@@ -111,18 +121,19 @@ class IConfigurePlugin(IPlugin):
 
     def main(self, port):
         # TODO make configuration options that are preset in port.yaml and can be modified via commandline
-        # TODO make environement configurable and controlled
+        # TODO make environement controlled
         # TODO i86 and amd64 dual build
         self.port = port
         self.check()
         if self.does_apply:
             self.ask()
-            for arch in ['amd64']:
+            for bits in self.build_bits:
                 try:
                     self.savedPath = os.getcwd()
-                    os.chdir(getattr(self.port, 'build_dir_{0}'.format(arch)))
+                    os.chdir(getattr(self.port, 'build_dir_{0}'.format(bits)))
                 except:
                     raise Exception("Error: port source dir {0} does not exist".format(self.port.build_dir))
+                self.port.updateEnvironmentVariable('BITS', bits)
                 self.configure()
             self.port.is_configured = True
             os.chdir(self.savedPath)
